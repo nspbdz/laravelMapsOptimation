@@ -13,20 +13,22 @@ class TestController extends Controller
         // $startLng = 106.827153; // Longitude titik awal
         $startLocations = [
             [
+                'name' => 'parung panjang',
+                'latitude' => -6.368107,
+                'longitude' => 106.553387
+            ],
+
+            [
                 'name' => 'Indramayu',
                 'latitude' => -6.327583,
                 'longitude' => 108.324936
             ],
 
+
             [
-                'name' => 'parung panjang',
-                'latitude' => -6.368107,
-                'longitude' => 106.553387
-            ],
-            [
-                'name' => 'tegal parang',
-                'latitude' => -6.249095,
-                'longitude' => 106.828162
+                'name' => 'Jakarta Location 1',
+                'latitude' => -6.200,
+                'longitude' => 106.700,
             ],
         ];
 
@@ -34,6 +36,11 @@ class TestController extends Controller
 
 
         $endLocation = [
+            [
+                'name' => 'tegal parang',
+                'latitude' => -6.249095,
+                'longitude' => 106.828162
+            ],
             [
                 'name' => 'Jakarta Location 1',
                 'latitude' => -6.200,
@@ -109,46 +116,52 @@ class TestController extends Controller
                 'latitude' => -6.214,
                 'longitude' => 106.714,
             ],
+
+
         ];
 
-        // $data = array();
-        // for ($i = 0; $i < count($startLocations); $i++) {
-        //     $data['awal' . $i] = $startLocations[$i];
-        //     for ($j = 0; $j < count($startLocations); $j++) {
-        //         // dd($startLocations[$i]['latitude']);
-        //         $data['awal' . $i][$j] = $this->getNearestLocation($startLocations[$i]['latitude'], $startLocations[$i]['longitude'], $endLocation);
-        //         dd($data['awal0'][0]);
-        //         unset($array[1]);
-        //     }
-        // }
+        $totalEndLocations = count($endLocation); // Jumlah total lokasi yang akan dibagi
+        $totalDrivers = count($startLocations); // Jumlah total driver
+
+        $locationsPerDriver = floor($totalEndLocations / $totalDrivers); // Jumlah lokasi per driver (pembulatan ke bawah)
+
+        $remainingItems = $totalEndLocations % $totalDrivers; // Sisa lokasi setelah pembagian
+
+        // Menginisialisasi array untuk menyimpan jumlah lokasi per driver
+        $itemCounts = array_fill(0, $totalDrivers, $locationsPerDriver);
+
+        // Memasukkan sisa lokasi ke driver pertama
+        for ($i = 0; $i < $remainingItems; $i++) {
+            $itemCounts[$i]++;
+        }
+
+        // Menyusun hasil pembagian ke dalam array
+        for ($i = 0; $i < $totalDrivers; $i++) {
+            $outputArray[] = array(
+                'driver' => ($i + 1),
+                'itemCount' => $itemCounts[$i]
+            );
+        }
+
 
         $data = array();
         for ($i = 0; $i < count($startLocations); $i++) {
-            $data['awal' . $i] = $startLocations[$i];
-            for ($j = 0; $j < count($startLocations); $j++) {
-                // dd($startLocations[$i]['latitude']);
-                $data['awal' . $i][$j] = $this->getNearestLocation($startLocations[$i]['latitude'], $startLocations[$i]['longitude'], $endLocation);
-                // dd($data['awal0'][0]);
+            $data['driver' . $i] = $startLocations[$i];
 
-                $key = array_search($data['awal' . $i][$j], $endLocation);
-                // dd($key);
+            for ($j = 0; $j < $outputArray[$i]['itemCount']; $j++) {
+                $data['driver' . $i][$j] = $this->getNearestLocation($startLocations[$i]['latitude'], $startLocations[$i]['longitude'], $endLocation);
+
+                $key = array_search($data['driver' . $i][$j], $endLocation);
                 if ($key !== false) {
                     unset($endLocation[$key]);
                 }
-                // dd($endLocation);
             }
         }
-        // dd($data);
+        dd($data);
 
 
 
-
-        // $nearestLocation = $this->getNearestLocation($startLat, $startLng, $locations);
-
-        // echo "Lokasi terdekat: " . $nearestLocation['name'] . "\n";
-
-        return view('test.index', ['nearestLocation' => $data]);
-        // return view('test.index', ['nearestLocation' => $nearestLocation]);
+        return view('test.index');
     }
 
     function getNearestLocation($startLat, $startLng, $locations)
