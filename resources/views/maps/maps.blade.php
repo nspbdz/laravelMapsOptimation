@@ -2,54 +2,60 @@
 @include('layout.navbar')
 @include('layout.sidebar')
 
-<style>
-    #map-canvas {
-        width: 100%;
-        height: 500px;
+<style type="text/css">
+    #map {
+        height: 400px;
     }
 </style>
 
+
 <script type="text/javascript">
-    var marker;
-    var locations
-    function initialize() {
-        var mapCanvas = document.getElementById('map-canvas');
-        var mapOptions = {
-            mapTypeId: google.maps.MapTypeId.ROADMAP
-        }
-        var map = new google.maps.Map(mapCanvas, mapOptions);
-        var infoWindow = new google.maps.InfoWindow;
-        var bounds = new google.maps.LatLngBounds();
-        function bindInfoWindow(marker, map, infoWindow, html) {
-            google.maps.event.addListener(marker, 'click', function() {
-                infoWindow.setContent(html);
-                infoWindow.open(map, marker);
+    function initMap() {
+        const myLatLng = {
+            lat: 22.2734719,
+            lng: 70.7512559
+        };
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 5,
+            center: myLatLng,
+        });
+
+        var locations = {{ Js::from($locations) }};
+        var lines = {{ Js::from($lines) }};
+
+        var infowindow = new google.maps.InfoWindow();
+
+        var marker, i;
+
+        const linesPath = new google.maps.Polyline({
+            path: lines,
+            geodesic: true,
+            strokeColor: "#FF0000",
+            strokeOpacity: 1.0,
+            strokeWeight: 2,
+        });
+
+        linesPath.setMap(map);
+
+        for (i = 0; i < locations.length; i++) {
+            marker = new google.maps.Marker({
+                position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                map: map
             });
-        }
-        function addMarker(lat, lng, info) {
-            var pt = new google.maps.LatLng(lat, lng);
-            bounds.extend(pt);
-            var marker = new google.maps.Marker({
-                map: map,
-                position: pt
-            });
-            map.fitBounds(bounds);
-            bindInfoWindow(marker, map, infoWindow, info);
+
+            google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                return function() {
+                    infowindow.setContent(locations[i][0]);
+                    infowindow.open(map, marker);
+                }
+            })(marker, i));
+
         }
 
-        const items = @json($locations);
-
-        items.forEach(item => {
-            addMarker(
-                item.lat,
-                item.lng,
-                "<b>Nama Lokasi : </b>" + item.name +
-                "<br> <b>Latitude : </b> " + item.lat +
-                "<br> <b>Longtitude : </b>" + item.lng,);
-        })
 
     }
-    google.maps.event.addDomListener(window, 'load', initialize);
+
+    window.initMap = initMap;
 </script>
 
 <div class="page-body">
@@ -62,7 +68,7 @@
                         <span>Display a map at a specified location and zoom level.</span>
                     </div>
                     <div class="card-body">
-                        <div id="map-canvas"></div>
+                        <div id="map"></div>
                     </div>
                 </div>
             </div>
@@ -70,8 +76,8 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmBL3_MRsk7qiOqSXgNr-x59cz_vXU9Fg&callback=initialize"></script>
+<script type="text/javascript"
+    src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY') }}&callback=initMap"></script>
 
 @include('layout.footer')
 @include('layout.js')
