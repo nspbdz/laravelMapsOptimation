@@ -106,10 +106,10 @@ class MapsController extends Controller
 
         $locations = [];
 
-        foreach ($data as $item) {
-            foreach ($item as $location) {
+        foreach ($data  as $key => $item) {
+            foreach ($item as $key2 => $location) {
 
-                $locations[] = [
+                $locations[$key][$key2] = [
 
                     $location["name"],
                     $location["lng"],
@@ -119,10 +119,10 @@ class MapsController extends Controller
         }
 
         $lines = [];
-        foreach ($data as $item) {
-            foreach ($item as $location) {
-                $lines[] = [
+        foreach ($data as $key => $item) {
 
+            foreach ($item as $key2 => $location) {
+                $lines[$key][$key2] = [
                     "lng" => $location["lng"],
                     "lat" => $location["lat"],
                 ];
