@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Lokasi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class TestController extends Controller
 {
     public function index()
     {
-        $endLocation = Lokasi::get()->toArray();
+        //data tambahan
+        $tpaPecuk = Lokasi::find(1)->toArray();
+        //data tambahan
+
+        $endLocation = Lokasi::where('id', '!=', 1)->get()->toArray();
 
         $startLocations = [
             [
@@ -56,24 +61,50 @@ class TestController extends Controller
             );
         }
 
-
+        // dd($outputArray[1]['itemCount']);
         $data = array();
         for ($i = 0; $i < count($startLocations); $i++) {
-            $data['driver' . $i] = $startLocations[$i];
+            $data[$i][0] = $startLocations[$i]; //memasukan data driver
+            $data[$i][1] = $tpaPecuk; //memasukan data tpa pecuk ke setiap driver
 
-            for ($j = 0; $j < $outputArray[$i]['itemCount']; $j++) {
-                $data['driver' . $i][$j] = $this->getNearestLocation($startLocations[$i]['lat'], $startLocations[$i]['lng'], $endLocation);
+            for ($j = 2; $j <= $outputArray[$i]['itemCount'] + 1; $j++) {
+                // $data[$i][$j] = $startLocations[$i];
 
-                $key = array_search($data['driver' . $i][$j], $endLocation);
+                $data[$i][$j] = $this->getNearestLocation($startLocations[$i]['lat'], $startLocations[$i]['lng'], $endLocation);
+
+                $key = array_search($data[$i][$j], $endLocation);
                 if ($key !== false) {
                     unset($endLocation[$key]);
                 }
             }
         }
-        dd($data);
+        // dd($data);
 
+        $locations = [];
 
+        foreach ($data as $item) {
+            foreach ($item as $location) {
 
+                $locations[] = [
+
+                    $location["name"],
+                    $location["lng"],
+                    $location["lat"],
+                ];
+            }
+        }
+
+        $lines = [];
+        foreach ($data as $item) {
+            foreach ($item as $location) {
+                $lines[] = [
+
+                    "lng" => $location["lng"],
+                    "lat" => $location["lat"],
+                ];
+            }
+        }
+        // dd($lines);
         return view('test.index');
     }
 
