@@ -15,24 +15,6 @@ class MapsController extends Controller
     public function index()
     {
 
-        // $locations = [
-        //     ['Mumbai', 19.0760, 72.8777],
-        //     ['Pune', 18.5204, 73.8567],
-        //     ['Bhopal ', 23.2599, 77.4126],
-        //     ['Agra', 27.1767, 78.0081],
-        //     ['Delhi', 28.7041, 77.1025],
-        //     ['Rajkot', 22.2734719, 70.7512559],
-        // ];
-
-        // $lines = [
-        //     ["lat" => 19.0760, "lng" => 72.8777],
-        //     ["lat" => 18.5204, "lng" => 73.8567],
-        //     ["lat" => 23.2599, "lng" => 77.4126],
-        //     ["lat" => 27.1767, "lng" => 78.0081],
-        //     ["lat" => 28.7041, "lng" => 77.1025],
-        //     ["lat" => 22.2734719, "lng" => 70.7512559],
-        // ];
-
 
         // data tambahan
         $tpaPecuk = Lokasi::find(1)->toArray();
@@ -104,6 +86,7 @@ class MapsController extends Controller
         }
         // dd($data);
 
+        //melakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
         $locations = [];
 
         foreach ($data  as $key => $item) {
@@ -112,23 +95,29 @@ class MapsController extends Controller
                 $locations[$key][$key2] = [
 
                     $location["name"],
-                    $location["lng"],
-                    $location["lat"],
+                    (float)$location["lat"],
+                    (float)$location["lng"],
                 ];
             }
         }
+        //melakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
+
+
+        //melakukan penyesuaian data agar bisa di tampilkan sebagai line
 
         $lines = [];
         foreach ($data as $key => $item) {
 
             foreach ($item as $key2 => $location) {
                 $lines[$key][$key2] = [
-                    "lng" => $location["lng"],
-                    "lat" => $location["lat"],
+                    "lng" => (float)$location["lng"],
+                    "lat" => (float)$location["lat"],
                 ];
             }
         }
-        // dd($lines);
+        //melakukan penyesuaian data agar bisa di tampilkan sebagai line
+
+        // dd($locations);
         return view('maps.maps', ['locations' => $locations, 'lines' => $lines]);
     }
 

@@ -1,1 +1,1 @@
- echo "Lokasi terdekat: " {{$nearestLocation['name']}}
+ echo "Lokasi terdekat: 
