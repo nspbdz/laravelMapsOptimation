@@ -15,6 +15,15 @@ class MapsController extends Controller
     public function index()
     {
 
+        return view('maps.maps');
+    }
+
+    public function data(Request $request, $id)
+    {
+        // dd($id);
+        $user = auth()->user()->level;
+        // dd($user);
+
 
         // data tambahan
         $tpaPecuk = Lokasi::find(1)->toArray();
@@ -118,8 +127,12 @@ class MapsController extends Controller
         //melakukan penyesuaian data agar bisa di tampilkan sebagai line
 
         // dd($locations);
-        return view('maps.maps', ['locations' => $locations, 'lines' => $lines]);
+        $driver = $id;
+        // return view('maps.maps', ['driver' => $driver, 'data' => $data, 'locations' => $locations, 'lines' => $lines]);
+        return response()->json(['driver' => $driver, 'data' => $data, 'locations' => $locations, 'lines' => $lines]);
     }
+
+
 
 
     function getNearestLocation($startLat, $startLng, $locations)

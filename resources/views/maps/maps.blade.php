@@ -10,7 +10,74 @@
 
 
 <script type="text/javascript">
-    function initMap() {
+    var dataLoc = [];
+    //     window.onload = function() {
+    //     onLoad(0);
+    // };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        onLoad(0); // Jalankan fungsi fetchData saat halaman selesai dimuat
+    });
+
+    function onLoad(dataDriver = null) {
+        event.preventDefault(); // Mencegah reload halaman
+
+        // console.log(dataDriver, 'dataDriver');
+        fetch('/maps/data/' + dataDriver)
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                // Handle the response data
+                // console.log(data);
+                dataLoc = data;
+                initMap(dataLoc)
+                addButton(dataLoc)
+
+                // Perform any additional actions or update the UI based on the data
+            })
+            .catch(function(error) {
+                // Handle any errors
+                console.error('Error:', error);
+            });
+        // Perform actions or initialization tasks when the page is loaded
+        // ...
+    }
+
+
+    function addButton(data) {
+        // console.log(data)
+
+        var btndriverContainer = document.getElementById('btndriver');
+
+        data.locations.forEach(function(driver, index) {
+            // Check if a button with the same data-driver attribute value already exists
+            var existingButton = btndriverContainer.querySelector('[data-driver="' + index + '"]');
+
+            if (!existingButton) {
+                var button = document.createElement('button');
+                button.type = 'button';
+                button.classList.add('btn', 'btn-primary');
+                button.innerText = 'Driver ' + parseInt(index + 1);
+                button.setAttribute('data-driver', parseInt(index));
+                button.addEventListener('click', function() {
+                    // Handle button click event
+                    var driverNumber = button.getAttribute('data-driver');
+                    console.log('Button clicked for Driver ' + driverNumber);
+
+                    // Call a function when the button is clicked
+                    onLoad(driverNumber);
+                });
+                btndriverContainer.appendChild(button);
+            }
+        });
+    }
+
+    function initMap(data) {
+
+
+        console.log(data, 'data');
+
         const myLatLng = {
             lat: -6.340748,
             lng: 108.315415
@@ -20,12 +87,9 @@
             center: myLatLng,
         });
 
-        // var locations = {{ Js::from($locations) }};
-        var locations = {{ Js::from($locations[1]) }};
-        console.log(locations);
 
-        // var lines = {{ Js::from($lines) }};
-        var lines = {{ Js::from($lines[1]) }};
+        var locations = data.locations[data.driver];
+        var lines = data.lines[data.driver];
 
         var infowindow = new google.maps.InfoWindow();
 
@@ -58,12 +122,11 @@
 
 
     }
-
-    window.initMap = initMap;
 </script>
 
 <div class="page-body">
     <div class="container-fluid">
+
         <div class="row">
             <div class="col-xl-6">
                 <div class="card" style="width: 72rem; height: 40rem;">
@@ -80,8 +143,16 @@
                     <button>driver c</button> -->
                     <!-- untuk admin -->
 
-                     driver A
-                    <!-- langsung tampilkan maps nya   -->
+
+                    @if(auth()->user()->level == 1)
+                    <div class="container-fluid ">
+
+                        <div class="row justify-center">
+                            <div id="btndriver"></div>
+                        </div>
+                    </div>
+                    @endif
+
 
                 </div>
             </div>
@@ -89,8 +160,7 @@
     </div>
 </div>
 
-<script type="text/javascript"
-    src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY') }}&callback=initMap"></script>
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY') }}&callback=initMap"></script>
 
 @include('layout.footer')
 @include('layout.js')
