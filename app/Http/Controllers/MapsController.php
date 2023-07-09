@@ -18,41 +18,42 @@ class MapsController extends Controller
         return view('maps.maps');
     }
 
+
     public function data(Request $request, $id)
     {
-        // dd($id);
+        //data preparation
         $user = auth()->user()->level;
-        // dd($user);
-
-
         // data tambahan
         $tpaPecuk = Lokasi::find(1)->toArray();
+        // dd($tpaPecuk['lat']);
+
         //data tambahan
 
         $endLocation = Lokasi::where('id', '!=', 1)->get()->toArray();
 
         $startLocations = [
             [
-                'name' => 'parung panjang',
-                'lat' => -6.368107,
-                'lng' => 106.553387
+                'name' => $tpaPecuk['name'],
+                'lat' => $tpaPecuk['lat'],
+                'lng' => $tpaPecuk['lng'],
             ],
 
             [
-                'name' => 'Indramayu',
-                'lat' => -6.327583,
-                'lng' => 108.324936
+                'name' => $tpaPecuk['name'],
+                'lat' => $tpaPecuk['lat'],
+                'lng' => $tpaPecuk['lng'],
             ],
 
 
             [
-                'name' => 'Jakarta Location 1',
-                'lat' => -6.200,
-                'lng' => 106.700,
+                'name' => $tpaPecuk['name'],
+                'lat' => $tpaPecuk['lat'],
+                'lng' => $tpaPecuk['lng'],
             ],
         ];
+        //data preparation
 
-
+        //pembagian data ke setiap driver
         $totalEndLocations = count($endLocation); // Jumlah total lokasi yang akan dibagi
         $totalDrivers = count($startLocations); // Jumlah total driver
 
@@ -60,7 +61,6 @@ class MapsController extends Controller
 
         $remainingItems = $totalEndLocations % $totalDrivers; // Sisa lokasi setelah pembagian
 
-        // Menginisialisasi array untuk menyimpan jumlah lokasi per driver
         $itemCounts = array_fill(0, $totalDrivers, $locationsPerDriver);
 
         // Memasukkan sisa lokasi ke driver pertama
@@ -68,34 +68,52 @@ class MapsController extends Controller
             $itemCounts[$i]++;
         }
 
-        // Menyusun hasil pembagian ke dalam array
+        // Menyusun hasil pembagian ke dalam array bertujuan untuk membagi lokasi terdekat ke setiap driver
         for ($i = 0; $i < $totalDrivers; $i++) {
             $outputArray[] = array(
                 'driver' => ($i + 1),
                 'itemCount' => $itemCounts[$i]
             );
         }
+        //pembagian data ke setiap driver
+
 
         // dd($outputArray[1]['itemCount']);
+        // Iterasi PSO
         $data = array();
         for ($i = 0; $i < count($startLocations); $i++) {
-            $data[$i][0] = $startLocations[$i]; //memasukan data driver
-            $data[$i][1] = $tpaPecuk; //memasukan data tpa pecuk ke setiap driver
+            // $data[$i][0] = $startLocations[$i]; //memasukan data driver
+            $data[$i][0] = $tpaPecuk; //memasukan lokasi awal tpa pecuk ke setiap driver
 
-            for ($j = 2; $j <= $outputArray[$i]['itemCount'] + 1; $j++) {
+            for ($j = 1; $j <= $outputArray[$i]['itemCount']; $j++) {
                 // $data[$i][$j] = $startLocations[$i];
 
-                $data[$i][$j] = $this->getNearestLocation($startLocations[$i]['lat'], $startLocations[$i]['lng'], $endLocation);
+                // pbest di persingkat dengan menggunakan global best
+                // ketika mendapatkan  global best data
+                // dalam konteks ini mengambil global best langsung kita masukan ke dalam variable data berupa array
+                // untuk mempersingkat update posisi partikel Global best
+                $data[$i][$j] = $this->getGlobalBest($startLocations[$i]['lat'], $startLocations[$i]['lng'], $endLocation);
+                // dd($data);
 
+
+                // menghapus global best yang sudah di ambil agar bertujuan Global best yang sudah di masukan ke dalam array
+                // berganti dengan global best selanjutnya
                 $key = array_search($data[$i][$j], $endLocation);
                 if ($key !== false) {
                     unset($endLocation[$key]);
                 }
             }
-        }
-        // dd($data);
 
-        //melakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
+            // memasukan Tpa pecuk di akhir lokasi
+            $data[$i][$outputArray[$i]['itemCount']] = $tpaPecuk; //memasukan data tpa pecuk ke setiap driver
+
+        }
+
+        // dd($data);
+        // solusi optimal didapat
+
+
+        //solusi optimal dilakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
         $locations = [];
 
         foreach ($data  as $key => $item) {
@@ -109,10 +127,11 @@ class MapsController extends Controller
                 ];
             }
         }
-        //melakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
+        // dd($locations);
+        //solusi optimal dilakukan penyesuaian data agar bisa di tampilkan sebagai mark lokasi
 
 
-        //melakukan penyesuaian data agar bisa di tampilkan sebagai line
+        //solusi optimal dilakukan penyesuaian data agar bisa di tampilkan sebagai line
 
         $lines = [];
         foreach ($data as $key => $item) {
@@ -124,7 +143,7 @@ class MapsController extends Controller
                 ];
             }
         }
-        //melakukan penyesuaian data agar bisa di tampilkan sebagai line
+        //solusi optimal dilakukan penyesuaian  data agar bisa di tampilkan sebagai line
 
         // dd($locations);
         $driver = $id;
@@ -134,30 +153,37 @@ class MapsController extends Controller
 
 
 
-
-    function getNearestLocation($startLat, $startLng, $locations)
+    function getGlobalBest($startLat, $startLng, $locations)
     {
-        $nearestLocation = null;
-        $nearestDistance = null;
+        // Inisialisasi variabel untuk lokasi terdekat dan jarak terpendek atau globalbest
+        $bestLocation = null;
+        $bestDistance = null;
 
+        // Melakukan perulangan untuk setiap lokasi dalam array $locations
         foreach ($locations as $location) {
             $lat = $location['lat'];
             $lng = $location['lng'];
 
+            // Menghitung jarak menggunakan fungsi haversineDistance
             $distance = $this->haversineDistance($startLat, $startLng, $lat, $lng);
 
-            if ($nearestDistance === null || $distance < $nearestDistance) {
-                $nearestLocation = $location;
-                $nearestDistance = $distance;
+            // Memeriksa apakah jarak terdekat belum diinisialisasi atau jarak saat ini lebih kecil
+            if ($bestDistance === null || $distance < $bestDistance) {
+                // Memperbarui lokasi terdekat dan jarak terpendek /globalbest
+                $bestLocation = $location;
+                $bestDistance = $distance;
             }
         }
-
-        return $nearestLocation;
+        // Mengembalikan lokasi terdekat
+        return $bestLocation;
     }
+
 
     function haversineDistance($lat1, $lng1, $lat2, $lng2)
     {
-        $earthRadius = 6371; // Radius of the earth in kilometers
+        // penggunaan inisialisasi paramter pso
+        $earthRadius = 6371; // merupakan radius bumi dalam kilometer.
+
 
         $deltaLat = deg2rad($lat2 - $lat1);
         $deltaLng = deg2rad($lng2 - $lng1);
@@ -171,5 +197,7 @@ class MapsController extends Controller
         $distance = $earthRadius * $c;
 
         return $distance;
+        // penggunaan inisialisasi paramter pso
+
     }
 }
