@@ -72,6 +72,11 @@ Route::group(['middleware' => 'auth'], function () {
     // ROUTE MAPS
     Route::get('/maps/maps', [MapsController::class, 'index'])->name('maps');
     Route::get('/maps/data/{id}', [MapsController::class, 'data'])->name('maps.data');
+    // pso
+    // Route::get('/pso', [PsoController::class, 'index'])->name('pso.index');
+    // Route::get('/pso', [PsoController::class, 'findNearestLocation'])->name('pso.index');
+
+    Route::get('/pso/data/{id}', [PsoController::class, 'findNearestLocation'])->name('pso.data');
 
     // ROUTE CRUD PROFIL
     Route::get('/profil/profil', [ProfilController::class, 'index'])->name('profil');

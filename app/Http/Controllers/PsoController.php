@@ -3,14 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Lokasi;
 
-use Illuminate\Support\Arr;
-
-class MapsController extends Controller
+class PSOController extends Controller
 {
     public function index()
     {
@@ -18,39 +13,37 @@ class MapsController extends Controller
         return view('maps.maps');
     }
 
-
-    public function data(Request $request, $id)
+    public function findNearestLocation(Request $request, $id)
     {
         //data preparation
         $user = auth()->user()->level;
+        // dd($user);
+
+
         // data tambahan
         $tpaPecuk = Lokasi::find(1)->toArray();
-        $tpaPecuk['jarak'] = null;
-        // dd($tpaPecuk);
-
         //data tambahan
 
         $endLocation = Lokasi::where('id', '!=', 1)->get()->toArray();
 
-        // diganti dengan driver dari database tetap
         $startLocations = [
             [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
+                'name' => 'parung panjang',
+                'lat' => -6.368107,
+                'lng' => 106.553387
             ],
 
             [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
+                'name' => 'Indramayu',
+                'lat' => -6.327583,
+                'lng' => 108.324936
             ],
 
 
             [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
+                'name' => 'Jakarta Location 1',
+                'lat' => -6.200,
+                'lng' => 106.700,
             ],
         ];
         //data preparation
@@ -82,23 +75,19 @@ class MapsController extends Controller
 
         // dd($outputArray[1]['itemCount']);
         // Iterasi PSO
-        $dataJarak = array();
         $data = array();
         for ($i = 0; $i < count($startLocations); $i++) {
             // $data[$i][0] = $startLocations[$i]; //memasukan data driver
-            $data[$i][0] = $tpaPecuk; //memasukan lokasi awal tpa pecuk ke setiap driver
-            $xyz = 0;
-            for ($j = 1; $j <= $outputArray[$i]['itemCount']; $j++) {
+            $data[$i][1] = $tpaPecuk; //memasukan lokasi awal tpa pecuk ke setiap driver
 
+            for ($j = 2; $j <= $outputArray[$i]['itemCount'] + 1; $j++) {
                 // $data[$i][$j] = $startLocations[$i];
 
                 // pbest di persingkat dengan menggunakan global best
                 // ketika mendapatkan  global best data
                 // dalam konteks ini mengambil global best langsung kita masukan ke dalam variable data berupa array
                 // untuk mempersingkat update posisi partikel Global best
-                $databest = $this->getGlobalBest($tpaPecuk, $endLocation);
-                $data[$i][$j] = $databest['bestLocation'];
-                $dataJarak[$i][$xyz]['jarak'] = $databest['bestDistance'];
+                $data[$i][$j] = $this->getGlobalBest($startLocations[$i]['lat'], $startLocations[$i]['lng'], $endLocation);
                 // dd($data);
 
 
@@ -108,14 +97,14 @@ class MapsController extends Controller
                 if ($key !== false) {
                     unset($endLocation[$key]);
                 }
-                $xyz++;
             }
 
             // memasukan Tpa pecuk di akhir lokasi
-            $data[$i][$outputArray[$i]['itemCount']] = $tpaPecuk; //memasukan data tpa pecuk ke setiap driver
+            $data[$i][$outputArray[$i]['itemCount'] + 1] = $tpaPecuk; //memasukan data tpa pecuk ke setiap driver
 
         }
 
+        // dd($data);
         // solusi optimal didapat
 
 
@@ -154,12 +143,13 @@ class MapsController extends Controller
         // dd($locations);
         $driver = $id;
         // return view('maps.maps', ['driver' => $driver, 'data' => $data, 'locations' => $locations, 'lines' => $lines]);
-        return response()->json(['driver' => $driver, 'data' => $data, 'locations' => $locations, 'lines' => $lines, 'dataJarak' => $dataJarak,]);
+        return response()->json(['driver' => $driver, 'data' => $data, 'locations' => $locations, 'lines' => $lines]);
     }
 
 
-    // function getGlobalBest($startLat, $startLng, $locations)
-    function getGlobalBest($startLoc, $locations)
+
+
+    function getGlobalBest($startLat, $startLng, $locations)
     {
         // Inisialisasi variabel untuk lokasi terdekat dan jarak terpendek atau globalbest
         $bestLocation = null;
@@ -171,7 +161,7 @@ class MapsController extends Controller
             $lng = $location['lng'];
 
             // Menghitung jarak menggunakan fungsi haversineDistance
-            $distance = $this->haversineDistance($startLoc['lat'], $startLoc['lng'], $lat, $lng);
+            $distance = $this->haversineDistance($startLat, $startLng, $lat, $lng);
 
             // Memeriksa apakah jarak terdekat belum diinisialisasi atau jarak saat ini lebih kecil
             if ($bestDistance === null || $distance < $bestDistance) {
@@ -180,11 +170,9 @@ class MapsController extends Controller
                 $bestDistance = $distance;
             }
         }
-        // $bestLocation = $bestDistance;
         // Mengembalikan lokasi terdekat
-        return ['bestDistance' => round($bestDistance, 2), 'bestLocation' => $bestLocation];
+        return $bestLocation;
     }
-
 
     function haversineDistance($lat1, $lng1, $lat2, $lng2)
     {
