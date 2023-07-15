@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Lokasi;
+use App\Models\Driver;
 
 use Illuminate\Support\Arr;
 
@@ -31,28 +32,29 @@ class MapsController extends Controller
         //data tambahan
 
         $endLocation = Lokasi::where('id', '!=', 1)->get()->toArray();
-
+        // $startLocations
         // diganti dengan driver dari database tetap
-        $startLocations = [
-            [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
-            ],
+        $startLocations=Driver::get()->toArray();
+        // $startLocations = [
+        //     [
+        //         'name' => $tpaPecuk['name'],
+        //         'lat' => $tpaPecuk['lat'],
+        //         'lng' => $tpaPecuk['lng'],
+        //     ],
 
-            [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
-            ],
+        //     [
+        //         'name' => $tpaPecuk['name'],
+        //         'lat' => $tpaPecuk['lat'],
+        //         'lng' => $tpaPecuk['lng'],
+        //     ],
 
 
-            [
-                'name' => $tpaPecuk['name'],
-                'lat' => $tpaPecuk['lat'],
-                'lng' => $tpaPecuk['lng'],
-            ],
-        ];
+        //     [
+        //         'name' => $tpaPecuk['name'],
+        //         'lat' => $tpaPecuk['lat'],
+        //         'lng' => $tpaPecuk['lng'],
+        //     ],
+        // ];
         //data preparation
 
         //pembagian data ke setiap driver
