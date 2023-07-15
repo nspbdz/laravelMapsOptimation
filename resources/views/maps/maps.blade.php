@@ -122,13 +122,60 @@
 
 
 
+    // function showTable(driverNumber, data) {
+    //     // Hapus tabel lama jika ada
+    //     var tableContainer = document.getElementById('tableContainer');
+    //     // console.log(tableContainer.firstChild, 'tableContainer');
+    //     if (tableContainer.firstChild) {
+    //         // console.log(tableContainer.firstChild, 'tableContainer');
+
+    //         tableContainer.removeChild(tableContainer.firstChild);
+    //     }
+
+    //     // Buat elemen tabel
+    //     var table = document.createElement('table');
+    //     table.classList.add('table-style'); // Tambahkan kelas CSS untuk gaya tabel
+    //     table.style.border = '1px solid black';
+    //     // Buat elemen tabel kepala (header)
+    //     var tableHead = document.createElement('thead');
+    //     var headRow = tableHead.insertRow();
+    //     var headCell1 = headRow.insertCell();
+    //     var headCell2 = headRow.insertCell();
+    //     var headCell3 = headRow.insertCell();
+    //     headCell1.textContent = 'Nama';
+    //     headCell2.textContent = 'Lokasi';
+    //     headCell3.textContent = 'Jarak';
+    //     table.appendChild(tableHead);
+
+    //     // Buat elemen tabel body
+    //     var tableBody = document.createElement('tbody');
+    //     // Isi tabel dengan data, misalnya dari objek driver
+    //     var driverData = getDriverData(data, driverNumber); // Ganti dengan fungsi yang mengembalikan data driver berdasarkan nomor driver
+    //     console.log(driverData, 'daatta')
+    //     for (var i = 0; i < driverData.dataDriver.length; i++) {
+    //         var row = tableBody.insertRow();
+    //         var cell1 = row.insertCell();
+    //         var cell2 = row.insertCell();
+    //         var cell3 = row.insertCell();
+    //         cell1.textContent = driverData.dataDriver[i]['name'];
+    //         cell2.textContent = driverData.dataDriver[i]['alamat'];
+    //         if (i < driverData.dataJarak.length) {
+    //             // console.log(driverData.dataJarak[i]['jarak']);
+    //             cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
+    //             cell3.classList.add('jarak-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
+
+    //         }
+    //     }
+    //     table.appendChild(tableBody);
+
+    //     // Sisipkan tabel ke dalam elemen yang sesuai di halaman
+    //     tableContainer.appendChild(table);
+    // }
+
     function showTable(driverNumber, data) {
         // Hapus tabel lama jika ada
         var tableContainer = document.getElementById('tableContainer');
-        // console.log(tableContainer.firstChild, 'tableContainer');
         if (tableContainer.firstChild) {
-            // console.log(tableContainer.firstChild, 'tableContainer');
-
             tableContainer.removeChild(tableContainer.firstChild);
         }
 
@@ -136,6 +183,7 @@
         var table = document.createElement('table');
         table.classList.add('table-style'); // Tambahkan kelas CSS untuk gaya tabel
         table.style.border = '1px solid black';
+
         // Buat elemen tabel kepala (header)
         var tableHead = document.createElement('thead');
         var headRow = tableHead.insertRow();
@@ -149,9 +197,9 @@
 
         // Buat elemen tabel body
         var tableBody = document.createElement('tbody');
-        // Isi tabel dengan data, misalnya dari objek driver
+        var totalJarak = 0;
         var driverData = getDriverData(data, driverNumber); // Ganti dengan fungsi yang mengembalikan data driver berdasarkan nomor driver
-        console.log(driverData, 'daatta')
+        console.log(driverData.dataJarak, 'driverData');
         for (var i = 0; i < driverData.dataDriver.length; i++) {
             var row = tableBody.insertRow();
             var cell1 = row.insertCell();
@@ -159,21 +207,49 @@
             var cell3 = row.insertCell();
             cell1.textContent = driverData.dataDriver[i]['name'];
             cell2.textContent = driverData.dataDriver[i]['alamat'];
+
             if (i < driverData.dataJarak.length) {
                 // console.log(driverData.dataJarak[i]['jarak']);
                 cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
+
+                cell3.classList.add('jarak-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
+
+            } else {
+                cell3.textContent = 0 + " km";
+
+            }
+            // cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
+            // cell3.classList.add('jarak-class'); // Tambahkan kelas CSS pada elemen jarak
+
+            if (i < driverData.dataJarak.length) {
+                totalJarak += driverData.dataJarak[i]['jarak'];
             }
         }
+
+        // Menghitung total jarak
+        var totalJarak = 0;
+        for (var i = 0; i < driverData.dataJarak.length; i++) {
+            totalJarak += driverData.dataJarak[i]['jarak'];
+        }
+
+        // Membuat elemen baris total
+        var totalRow = tableBody.insertRow();
+        var totalCell1 = totalRow.insertCell();
+        var totalCell2 = totalRow.insertCell();
+        var totalCell3 = totalRow.insertCell();
+        totalCell1.textContent = 'Total';
+        totalCell2.textContent = '';
+        totalCell3.textContent = totalJarak.toFixed(2) + " km";
+        totalCell3.classList.add('total-jarak-class'); // Ganti 'total-jarak-class' dengan nama kelas yang Anda inginkan
+
         table.appendChild(tableBody);
 
         // Sisipkan tabel ke dalam elemen yang sesuai di halaman
         tableContainer.appendChild(table);
     }
 
-
     function getDriverData(data, driverNumber) {
         var data = {
-            bla: 123,
             driver: driverNumber,
             dataJarak: data.dataJarak[driverNumber],
             dataDriver: data.data[driverNumber] // Lengkapi dengan logika untuk mendapatkan data driver yang sesuai dari objek data
