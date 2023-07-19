@@ -19,6 +19,13 @@ class MapsController extends Controller
         return view('maps.maps');
     }
 
+    public function directions()
+    {
+
+        return view('maps.directions');
+    }
+
+
 
     public function data(Request $request, $id)
     {
@@ -34,7 +41,7 @@ class MapsController extends Controller
         $endLocation = Lokasi::where('id', '!=', 1)->get()->toArray();
         // $startLocations
         // diganti dengan driver dari database tetap
-        $startLocations=Driver::get()->toArray();
+        $startLocations = Driver::get()->toArray();
         // $startLocations = [
         //     [
         //         'name' => $tpaPecuk['name'],

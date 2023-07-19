@@ -71,6 +71,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // ROUTE MAPS
     Route::get('/maps/maps', [MapsController::class, 'index'])->name('maps');
+    Route::get('/maps/directions', [MapsController::class, 'directions'])->name('directions');
     Route::get('/maps/data/{id}', [MapsController::class, 'data'])->name('maps.data');
     // pso
     // Route::get('/pso', [PsoController::class, 'index'])->name('pso.index');
