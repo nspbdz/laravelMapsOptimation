@@ -83,7 +83,9 @@
         directionsService
             .route({
                 origin: {
-              
+                    // query: document.getElementById("start").value,
+                    // with lat lng
+                    lat: -6.340748,
                     lng: 108.315415
                 },
                 destination: {
@@ -91,6 +93,21 @@
                     lat: -6.3404209,
                     lng: 108.3019469
                 },
+                waypoints: [{
+                        location: {
+                            lat: -6.329639,
+                            lng: 108.315801
+                        },
+                        stopover: true,
+                    },
+                    {
+                        location: {
+                            lat: -6.385408,
+                            lng: 108.290919
+                        },
+                        stopover: true,
+                    },
+                ],
                 travelMode: google.maps.TravelMode.DRIVING,
             })
             .then((response) => {

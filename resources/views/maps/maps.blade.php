@@ -77,7 +77,7 @@
                 // Handle the response data
                 // console.log(data);
                 dataLoc = data;
-                initMap(dataLoc)
+                initMap(dataLoc, dataDriver)
                 addButton(dataLoc)
 
                 // Perform any additional actions or update the UI based on the data
@@ -120,59 +120,7 @@
         });
     }
 
-
-
-    // function showTable(driverNumber, data) {
-    //     // Hapus tabel lama jika ada
-    //     var tableContainer = document.getElementById('tableContainer');
-    //     // console.log(tableContainer.firstChild, 'tableContainer');
-    //     if (tableContainer.firstChild) {
-    //         // console.log(tableContainer.firstChild, 'tableContainer');
-
-    //         tableContainer.removeChild(tableContainer.firstChild);
-    //     }
-
-    //     // Buat elemen tabel
-    //     var table = document.createElement('table');
-    //     table.classList.add('table-style'); // Tambahkan kelas CSS untuk gaya tabel
-    //     table.style.border = '1px solid black';
-    //     // Buat elemen tabel kepala (header)
-    //     var tableHead = document.createElement('thead');
-    //     var headRow = tableHead.insertRow();
-    //     var headCell1 = headRow.insertCell();
-    //     var headCell2 = headRow.insertCell();
-    //     var headCell3 = headRow.insertCell();
-    //     headCell1.textContent = 'Nama';
-    //     headCell2.textContent = 'Lokasi';
-    //     headCell3.textContent = 'Jarak';
-    //     table.appendChild(tableHead);
-
-    //     // Buat elemen tabel body
-    //     var tableBody = document.createElement('tbody');
-    //     // Isi tabel dengan data, misalnya dari objek driver
-    //     var driverData = getDriverData(data, driverNumber); // Ganti dengan fungsi yang mengembalikan data driver berdasarkan nomor driver
-    //     console.log(driverData, 'daatta')
-    //     for (var i = 0; i < driverData.dataDriver.length; i++) {
-    //         var row = tableBody.insertRow();
-    //         var cell1 = row.insertCell();
-    //         var cell2 = row.insertCell();
-    //         var cell3 = row.insertCell();
-    //         cell1.textContent = driverData.dataDriver[i]['name'];
-    //         cell2.textContent = driverData.dataDriver[i]['alamat'];
-    //         if (i < driverData.dataJarak.length) {
-    //             // console.log(driverData.dataJarak[i]['jarak']);
-    //             cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
-    //             cell3.classList.add('jarak-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
-
-    //         }
-    //     }
-    //     table.appendChild(tableBody);
-
-    //     // Sisipkan tabel ke dalam elemen yang sesuai di halaman
-    //     tableContainer.appendChild(table);
-    // }
-
-    function showTable(driverNumber, data) {
+    function showTable(driverNumber, data, response) {
         // Hapus tabel lama jika ada
         var tableContainer = document.getElementById('tableContainer');
         if (tableContainer.firstChild) {
@@ -190,32 +138,49 @@
         var headCell1 = headRow.insertCell();
         var headCell2 = headRow.insertCell();
         var headCell3 = headRow.insertCell();
+        var headCell4 = headRow.insertCell();
         headCell1.textContent = 'Nama';
         headCell2.textContent = 'Lokasi';
-        headCell3.textContent = 'Jarak';
+        headCell3.textContent = 'Estimasi Durasi';
+        headCell4.textContent = 'Jarak';
         table.appendChild(tableHead);
 
         // Buat elemen tabel body
         var tableBody = document.createElement('tbody');
         var totalJarak = 0;
-        var driverData = getDriverData(data, driverNumber); // Ganti dengan fungsi yang mengembalikan data driver berdasarkan nomor driver
+        var driverData = getDriverData(data,
+            driverNumber); // Ganti dengan fungsi yang mengembalikan data driver berdasarkan nomor driver
         console.log(driverData.dataJarak, 'driverData');
         for (var i = 0; i < driverData.dataDriver.length; i++) {
             var row = tableBody.insertRow();
             var cell1 = row.insertCell();
             var cell2 = row.insertCell();
             var cell3 = row.insertCell();
+            var cell4 = row.insertCell();
             cell1.textContent = driverData.dataDriver[i]['name'];
             cell2.textContent = driverData.dataDriver[i]['alamat'];
 
             if (i < driverData.dataJarak.length) {
                 // console.log(driverData.dataJarak[i]['jarak']);
-                cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
+                const duration = response.routes[0].legs[i].duration.text;
+                cell3.textContent = duration;
 
-                cell3.classList.add('jarak-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
+                cell3.classList.add('duration-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
 
             } else {
-                cell3.textContent = 0 + " km";
+                cell3.textContent = 0 + " min";
+
+            }
+
+            if (i < driverData.dataJarak.length) {
+                // console.log(driverData.dataJarak[i]['jarak']);
+                const distance = response.routes[0].legs[i].distance.text;
+                cell4.textContent = distance;
+
+                cell4.classList.add('jarak-class'); // Ganti 'jarak-class' dengan nama kelas yang Anda inginkan
+
+            } else {
+                cell4.textContent = 0 + " km";
 
             }
             // cell3.textContent = driverData.dataJarak[i]['jarak'] + " km";
@@ -237,10 +202,12 @@
         var totalCell1 = totalRow.insertCell();
         var totalCell2 = totalRow.insertCell();
         var totalCell3 = totalRow.insertCell();
+        var totalCell4 = totalRow.insertCell();
         totalCell1.textContent = 'Total';
         totalCell2.textContent = '';
-        totalCell3.textContent = totalJarak.toFixed(2) + " km";
-        totalCell3.classList.add('total-jarak-class'); // Ganti 'total-jarak-class' dengan nama kelas yang Anda inginkan
+        totalCell3.textContent = '';
+        totalCell4.textContent = totalJarak.toFixed(2) + " km";
+        totalCell4.classList.add('total-jarak-class'); // Ganti 'total-jarak-class' dengan nama kelas yang Anda inginkan
 
         table.appendChild(tableBody);
 
@@ -252,60 +219,85 @@
         var data = {
             driver: driverNumber,
             dataJarak: data.dataJarak[driverNumber],
-            dataDriver: data.data[driverNumber] // Lengkapi dengan logika untuk mendapatkan data driver yang sesuai dari objek data
+            dataDriver: data.data[
+                driverNumber
+            ] // Lengkapi dengan logika untuk mendapatkan data driver yang sesuai dari objek data
         };
 
         return data;
     }
 
-
-
-    function initMap(data) {
-
-
-        // console.log(data, 'data');
+    function initMap(data, dataDriver) {
 
         const myLatLng = {
             lat: -6.340748,
             lng: 108.315415
         };
+
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
         const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 5,
-            center: myLatLng,
+            zoom: 13,
+            center: myLatLng
         });
 
+        directionsRenderer.setMap(map);
 
-        var locations = data.locations[data.driver];
-        var lines = data.lines[data.driver];
+        let locations = data.locations[data.driver];
+        let lines = data.lines[data.driver];
 
-        var infowindow = new google.maps.InfoWindow();
 
-        var marker, i;
-
-        const linesPath = new google.maps.Polyline({
-            path: lines,
-            geodesic: true,
-            strokeColor: "#FF0000",
-            strokeOpacity: 1.0,
-            strokeWeight: 2,
-        });
-
-        linesPath.setMap(map);
-        console.log(locations.length, 'length')
-        for (i = 0; i < locations.length; i++) {
-            marker = new google.maps.Marker({
-                position: new google.maps.LatLng(locations[i][1], locations[i][2]),
-                map: map
-            });
-
-            google.maps.event.addListener(marker, 'click', (function(marker, i) {
-                return function() {
-                    infowindow.setContent(locations[i][0]);
-                    infowindow.open(map, marker);
-                }
-            })(marker, i));
-
+        let origin = {
+            lat: lines[0].lat,
+            lng: lines[0].lng
         }
+
+        let destination = {
+            lat: lines[lines.length - 1].lat,
+            lng: lines[lines.length - 1].lng
+        }
+
+        let newLines = [...lines]
+
+        newLines.shift();
+        newLines.pop();
+
+        const waypoints = [];
+        newLines.forEach((item) => {
+            waypoints.push({
+                location: {
+
+                    lat: item.lat,
+                    lng: item.lng,
+                },
+                stopover: true,
+            });
+        });
+
+
+        directionsService
+            .route({
+                origin,
+                destination,
+                waypoints,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: true,
+                unitSystem: google.maps.UnitSystem.METRIC
+
+            })
+            .then((response) => {
+                console.log(response)
+                directionsRenderer.setDirections(response);
+
+                const legs = response.routes[0].legs;
+                for (let i = 0; i < legs.length; i++) {
+                    const distance = legs[i].distance.text;
+                    console.log(`Leg ${i + 1} distance: ${distance}`);
+                }
+
+                showTable(dataDriver, data, response);
+            })
+            .catch((e) => window.alert("Directions request failed due to " + status));
 
 
     }
@@ -323,13 +315,12 @@
                     </div>
                     <div class="card-body">
                         <div id="map"></div>
-                        @if(auth()->user()->level == 1)
+                        @if (auth()->user()->level == 1)
+                            <div id="btndriver"></div>
+                            <div id="tableContainer"></div>
+                            <div class="col-md-12">
 
-                        <div id="btndriver"></div>
-                        <div id="tableContainer"></div>
-                        <div class="col-md-12">
-
-                        </div>
+                            </div>
                         @endif
 
                     </div>
@@ -340,9 +331,8 @@
                     <!-- untuk admin -->
 
 
-                    <!-- @if(auth()->user()->level == 1)
-
-                    <div class="container-fluid ">
+                    <!-- @if (auth()->user()->level == 1)
+<div class="container-fluid ">
 
                         <div class="row justify-center">
 
@@ -353,7 +343,7 @@
 
                         </div>
                     </div>
-                    @endif -->
+@endif -->
 
                     <!-- jika login driver
                     nama_driver lokasi jarak_km -->
@@ -364,7 +354,7 @@
     </div>
 </div>
 
-<script type="text/javascript" src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY') }}&callback=initMap"></script>
+<script type="text/javascript" src="https://maps.google.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY') }}"></script>
 
 <!-- @include('layout.footer') -->
 @include('layout.js')
